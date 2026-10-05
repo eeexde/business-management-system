@@ -48,3 +48,6 @@ next-env.d.ts
 /.claude/settings.local.json
 /e2e.db*
 /scratch-*.db*
+/qa.db*
+/review-scratch.db*
+/ci.db*

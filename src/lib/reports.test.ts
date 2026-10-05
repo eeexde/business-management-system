@@ -11,6 +11,7 @@ import {
   monthKeys,
   monthLabel,
   percentChange,
+  rangeParams,
   resolveRange,
   startOfMonth,
 } from "./reports";
@@ -82,6 +83,16 @@ describe("resolveRange", () => {
     });
     expect(resolveRange("custom", today, { from: "nope", to: "2026-04-01" }).key).toBe("last-12-months");
     expect(resolveRange("custom", today).key).toBe("last-12-months");
+  });
+});
+
+describe("rangeParams", () => {
+  it("round-trips presets and custom ranges", () => {
+    const today = "2026-10-05";
+    expect(rangeParams(resolveRange("ytd", today))).toEqual({ range: "ytd" });
+    const custom = resolveRange("custom", today, { from: "2026-01-01", to: "2026-02-01" });
+    const p = rangeParams(custom);
+    expect(resolveRange(p.range, today, p)).toEqual(custom);
   });
 });
 

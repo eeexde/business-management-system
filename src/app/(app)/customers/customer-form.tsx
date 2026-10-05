@@ -1,11 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
-import { LinkButton } from "@/components/ui/button";
+import { startTransition, useActionState } from "react";
+import { Button, LinkButton } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { FormMessage } from "@/components/ui/form-message";
 import { Field, Input, Textarea } from "@/components/ui/input";
-import { SubmitButton } from "@/components/ui/submit-button";
 import type { Customer } from "@/db/schema";
 import { initialActionState, type ActionState } from "@/lib/action-state";
 
@@ -17,13 +16,23 @@ type Props = {
 
 /** Shared create/edit form. Pass a bound update action when editing. */
 export function CustomerForm({ action, customer, cancelHref }: Props) {
-  const [state, formAction] = useActionState(action, initialActionState);
+  const [state, formAction, pending] = useActionState(action, initialActionState);
   const err = (name: string) => state.errors?.[name];
 
   return (
     <Card>
       <CardBody>
-        <form action={formAction} className="grid gap-5 sm:grid-cols-2" noValidate>
+        <form
+          action={formAction}
+          // Submit manually so React doesn't reset the fields when validation fails.
+          onSubmit={(e) => {
+            e.preventDefault();
+            const data = new FormData(e.currentTarget);
+            startTransition(() => formAction(data));
+          }}
+          className="grid gap-5 sm:grid-cols-2"
+          noValidate
+        >
           <Field label="Name" htmlFor="name" errors={err("name")}>
             <Input
               id="name"
@@ -70,7 +79,9 @@ export function CustomerForm({ action, customer, cancelHref }: Props) {
               <LinkButton href={cancelHref} variant="secondary">
                 Cancel
               </LinkButton>
-              <SubmitButton>{customer ? "Save changes" : "Create customer"}</SubmitButton>
+              <Button type="submit" disabled={pending}>
+                {pending ? "Saving…" : customer ? "Save changes" : "Create customer"}
+              </Button>
             </div>
           </div>
         </form>

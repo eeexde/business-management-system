@@ -1,11 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { LinkButton } from "@/components/ui/button";
+import { startTransition, useActionState, useState } from "react";
+import { Button, LinkButton } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { FormMessage } from "@/components/ui/form-message";
 import { Field, Input, Textarea } from "@/components/ui/input";
-import { SubmitButton } from "@/components/ui/submit-button";
 import type { Product } from "@/db/schema";
 import { initialActionState, type ActionState } from "@/lib/action-state";
 import { marginPercent } from "@/lib/products";
@@ -20,7 +19,7 @@ type Props = {
 
 /** Shared create/edit form. Initial stock is only shown when creating. */
 export function ProductForm({ action, product, categories, cancelHref }: Props) {
-  const [state, formAction] = useActionState(action, initialActionState);
+  const [state, formAction, pending] = useActionState(action, initialActionState);
   const [isService, setIsService] = useState(product?.isService ?? false);
   const [price, setPrice] = useState(product ? centsToInput(product.priceCents) : "");
   const [cost, setCost] = useState(product ? centsToInput(product.costCents) : "");
@@ -38,7 +37,17 @@ export function ProductForm({ action, product, categories, cancelHref }: Props) 
   return (
     <Card>
       <CardBody>
-        <form action={formAction} className="grid gap-5 sm:grid-cols-2" noValidate>
+        <form
+          action={formAction}
+          // Submit manually so React doesn't reset the fields when validation fails.
+          onSubmit={(e) => {
+            e.preventDefault();
+            const data = new FormData(e.currentTarget);
+            startTransition(() => formAction(data));
+          }}
+          className="grid gap-5 sm:grid-cols-2"
+          noValidate
+        >
           <Field label="SKU" htmlFor="sku" errors={err("sku")} hint="Unique code, e.g. OFC-1001.">
             <Input
               id="sku"
@@ -148,7 +157,9 @@ export function ProductForm({ action, product, categories, cancelHref }: Props) 
               <LinkButton href={cancelHref} variant="secondary">
                 Cancel
               </LinkButton>
-              <SubmitButton>{product ? "Save changes" : "Create product"}</SubmitButton>
+              <Button type="submit" disabled={pending}>
+                {pending ? "Saving…" : product ? "Save changes" : "Create product"}
+              </Button>
             </div>
           </div>
         </form>

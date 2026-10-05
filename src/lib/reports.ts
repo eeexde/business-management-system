@@ -23,6 +23,10 @@ export const RANGE_LABELS: Record<RangeKey, string> = {
   custom: "Custom range",
 };
 
+/** Reports that can be exported as CSV (route: /reports/export/[report]). */
+export const REPORT_NAMES = ["pnl", "products", "customers", "expenses", "aging"] as const;
+export type ReportName = (typeof REPORT_NAMES)[number];
+
 export const DEFAULT_RANGE: RangeKey = "last-12-months";
 
 /** Inclusive date range, both YYYY-MM-DD. */
@@ -93,6 +97,11 @@ export function resolveRange(
     default:
       return { key: "last-12-months", from: isoFromParts(y, m - 11, 1), to: today };
   }
+}
+
+/** Search params that reproduce a range, for links and CSV exports. */
+export function rangeParams(range: DateRange): Record<string, string> {
+  return range.key === "custom" ? { range: "custom", from: range.from, to: range.to } : { range: range.key };
 }
 
 /** Every YYYY-MM month touched by an inclusive date range, in order. */

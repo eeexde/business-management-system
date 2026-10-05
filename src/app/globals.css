@@ -65,4 +65,28 @@ body {
   body {
     background: white;
   }
+  /* Print in the light palette even when dark mode is on, edge to edge without the sidebar offset. */
+  :root,
+  .dark {
+    --background: #ffffff;
+    --foreground: #18181b;
+    --card: #ffffff;
+    --muted: #f1f1f3;
+    --muted-foreground: #52525b;
+    --border: #e4e4e8;
+    --primary: #4f46e5;
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+  }
+  main {
+    padding-left: 0 !important;
+  }
+  main > div {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  @page {
+    margin: 16mm;
+  }
 }

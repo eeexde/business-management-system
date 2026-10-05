@@ -2,7 +2,14 @@ import "server-only";
 import { and, asc, desc, eq, gt, gte, inArray, lte, sql, type AnyColumn } from "drizzle-orm";
 import { db } from "@/db";
 import { customers, expenses, invoiceItems, invoices, payments, products } from "@/db/schema";
-import type { AgingInvoice, MonthlyAmount, MonthlyCategoryAmount } from "@/lib/reports";
+import {
+  buildAging,
+  buildPnl,
+  monthKeys,
+  type AgingInvoice,
+  type MonthlyAmount,
+  type MonthlyCategoryAmount,
+} from "@/lib/reports";
 
 /*
  * Report queries. See src/lib/reports.ts for the revenue definition:
@@ -154,4 +161,15 @@ export async function getOpenReceivables(): Promise<AgingInvoice[]> {
     .innerJoin(customers, eq(invoices.customerId, customers.id))
     .where(and(eq(invoices.status, "sent"), gt(invoices.totalCents, invoices.amountPaidCents)))
     .orderBy(asc(invoices.dueDate));
+}
+
+/** Monthly P&L for an inclusive range (cash-basis revenue). */
+export async function getPnl(from: string, to: string) {
+  const [revenue, spend] = await Promise.all([getRevenueByMonth(from, to), getExpensesByMonthCategory(from, to)]);
+  return buildPnl(monthKeys(from, to), revenue, spend);
+}
+
+/** A/R aging snapshot by customer as of a date. */
+export async function getAging(asOf: string) {
+  return buildAging(await getOpenReceivables(), asOf);
 }

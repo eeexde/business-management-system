@@ -290,9 +290,7 @@ export async function seedInvoices(): Promise<void> {
           createdAt: stamp(d.date, "08:00:00"),
         })),
       );
-      // Net change is zero (restocked === sold); written explicitly so the ledger and stock agree.
-      // eslint-disable-next-line drizzle/enforce-update-with-where
-      void restocked;
+      // Net change is zero (restocked === sold), so products.stock already matches the ledger.
     }
   });
 

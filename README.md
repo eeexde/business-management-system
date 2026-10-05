@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BizDesk
 
-## Getting Started
+**All-in-one business management for small teams.** Customers, inventory, invoicing, expenses, tasks, and financial reports in one fast, role-aware web app.
 
-First, run the development server:
+Built with Next.js 16 (App Router, Server Components, Server Actions), TypeScript, Drizzle ORM on SQLite/libSQL, and Tailwind CSS v4.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+> Demo login: `demo@bizdesk.app` / `demo1234` (admin). Also try `priya@bizdesk.app` (manager) and `sam@bizdesk.app` (staff) with the same password to see role-based permissions.
+
+## Features
+
+| Module | Highlights |
+| --- | --- |
+| **Dashboard** | Revenue, A/R, overdue, expenses, and net profit KPIs; 12-month revenue vs expenses chart; recent invoices; top customers; my tasks; activity feed |
+| **Customers** | Searchable CRM, lifetime value and outstanding balance per customer, linked invoices and tasks |
+| **Products & inventory** | SKU catalog with margins, low-stock alerts, stock adjustments with a full audit trail |
+| **Invoices** | Live line-item editor, tax and discounts, draft → sent → paid lifecycle, partial payments, derived overdue status, void with stock restore, duplicate, printable or PDF invoice |
+| **Expenses** | Categorized spend, month-over-month comparison, category breakdown, CSV export |
+| **Tasks** | Drag-and-drop kanban with keyboard and touch fallback, priorities, due dates, assignees, customer links |
+| **Reports** | Monthly P&L, sales by product and customer, expenses by category, A/R aging, CSV export for every report |
+| **Settings & team** | Business profile, currency and tax defaults, user management with admin / manager / staff roles |
+
+## Architecture
+
+```
+src/
+  app/
+    login/              Public sign-in (Server Action + useActionState)
+    (app)/              Authenticated area: shared sidebar layout
+      <module>/         page.tsx (Server Component) · actions.ts ("use server") · *-form.tsx (client)
+  components/ui/        Small in-house UI kit (Button, Field, Table, Card, Badge…)
+  db/schema.ts          Drizzle schema: single source of truth for tables and types
+  lib/
+    queries/            Server-only read functions per module
+    <module>.ts         Pure business logic (unit tested)
+    auth.ts             Session cookie (JWT via jose), requireUser, authorize(permission)
+    permissions.ts      Role → permission matrix, shared by UI and server
+  proxy.ts              Optimistic route protection (Next 16's replacement for middleware)
+scripts/seed*           Deterministic 12-month demo dataset
+e2e/                    Playwright smoke tests
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Key decisions:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Money is integer cents** everywhere. Formatting happens only at render time.
+- **Server-side source of truth.** Invoice totals are recomputed on the server from line items. Client previews use the same pure `computeInvoiceTotals` function.
+- **Defense in depth for auth.** `proxy.ts` redirects signed-out users cheaply. Every page and Server Action re-checks the session against the database and enforces permissions with `authorize()`.
+- **Transactions** wrap multi-table writes (sending an invoice decrements stock and writes stock movements, voiding restores it, and payments update balances).
+- **Derived state isn't stored.** "Overdue" and "partial" are computed from due date and payments, so they can never drift.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Getting started
 
-## Learn More
+Requires Node.js 20+.
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+cp .env.example .env          # then set SESSION_SECRET to a long random string
+npm run db:reset              # create local.db, push schema, seed demo data
+npm run dev                   # http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` / `build` / `start` | Next.js dev server, production build, production server |
+| `npm run db:push` | Sync the schema to the database |
+| `npm run db:seed` / `db:reset` | Seed demo data / wipe, push, and seed |
+| `npm test` | Unit tests (Vitest) |
+| `npm run test:e2e` | E2E smoke tests (Playwright) against a production build (run `npm run build` first) |
+| `npm run typecheck` / `lint` | TypeScript and ESLint |
 
-## Deploy on Vercel
+## Deploying
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The app runs anywhere Node runs. For serverless hosts (for example Vercel), use [Turso](https://turso.tech) as the database. It speaks the same libSQL protocol, so no code changes are needed:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+DATABASE_URL=libsql://<your-db>.turso.io
+DATABASE_AUTH_TOKEN=<token>
+SESSION_SECRET=<32+ random chars>
+```
+
+Run `npm run db:push && npm run db:seed` once with those variables set.
+
+## License
+
+MIT

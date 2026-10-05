@@ -9,17 +9,13 @@ import { users } from "@/db/schema";
 import type { ActionState } from "@/lib/action-state";
 import { logActivity } from "@/lib/activity";
 import { createSession, deleteSession } from "@/lib/auth";
+import { safeNext } from "@/lib/safe-redirect";
 
 const LoginSchema = z.object({
   email: z.email({ error: "Enter a valid email." }).trim().toLowerCase(),
   password: z.string().min(1, { error: "Enter your password." }),
   next: z.string().optional(),
 });
-
-/** Only allow same-site relative redirects. */
-function safeNext(next: string | undefined) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
-}
 
 export async function login(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = LoginSchema.safeParse({

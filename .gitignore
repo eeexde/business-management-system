@@ -46,3 +46,5 @@ next-env.d.ts
 /playwright-report/
 !.env.example
 /.claude/settings.local.json
+/e2e.db*
+/scratch-*.db*

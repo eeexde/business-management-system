@@ -22,7 +22,7 @@ import {
 } from "@/lib/queries/expenses";
 import { getSettings } from "@/lib/queries/settings";
 import { formatDate, formatMoney, formatPercent, today } from "@/lib/utils";
-import { Pagination } from "./pagination";
+import { Pagination } from "@/components/ui/pagination";
 
 export const metadata = { title: "Expenses" };
 

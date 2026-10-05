@@ -1,25 +1,30 @@
 "use client";
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, type TooltipContentProps } from "recharts";
-import type { CategorySlice } from "@/lib/reports";
-import { categoryLabel } from "@/lib/reports";
+import { categoryLabel, type CategorySlice } from "@/lib/reports";
 import { formatMoney } from "@/lib/utils";
 import { CATEGORY_COLORS, CHART_PALETTE_CLASS, ChartTooltipCard } from "./chart-theme";
+
+function SliceTooltip({ active, payload, currency }: TooltipContentProps & { currency: string }) {
+  const slice = payload?.[0]?.payload as CategorySlice | undefined;
+  if (!active || !slice) return null;
+  return (
+    <ChartTooltipCard
+      currency={currency}
+      rows={[
+        {
+          name: `${categoryLabel(slice.category)} · ${slice.pct}%`,
+          value: slice.cents,
+          color: CATEGORY_COLORS[slice.category],
+        },
+      ]}
+    />
+  );
+}
 
 /** Expense share by category: donut with the total in the middle and a legend with values. */
 export function CategoryDonut({ slices, currency }: { slices: CategorySlice[]; currency: string }) {
   const total = slices.reduce((s, c) => s + c.cents, 0);
-
-  function SliceTooltip({ active, payload }: TooltipContentProps<number, string>) {
-    const slice = payload?.[0]?.payload as CategorySlice | undefined;
-    if (!active || !slice) return null;
-    return (
-      <ChartTooltipCard
-        currency={currency}
-        rows={[{ name: `${categoryLabel(slice.category)} · ${slice.pct}%`, value: slice.cents, color: CATEGORY_COLORS[slice.category] }]}
-      />
-    );
-  }
 
   return (
     <div className={`${CHART_PALETTE_CLASS} grid items-center gap-6 sm:grid-cols-[minmax(0,220px)_1fr]`}>
@@ -42,7 +47,7 @@ export function CategoryDonut({ slices, currency }: { slices: CategorySlice[]; c
                 <Cell key={s.category} fill={CATEGORY_COLORS[s.category]} />
               ))}
             </Pie>
-            <Tooltip content={SliceTooltip} />
+            <Tooltip content={(props) => <SliceTooltip {...props} currency={currency} />} />
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">

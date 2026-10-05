@@ -9,6 +9,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { db } from "../src/db";
 import { settings, users } from "../src/db/schema";
+import { seedActivity } from "./seed/activity";
 import { seedCustomersProducts } from "./seed/customers-products";
 import { seedExpenses } from "./seed/expenses";
 import { seedInvoices } from "./seed/invoices";
@@ -50,6 +51,7 @@ async function main() {
   await seedInvoices();
   await seedExpenses();
   await seedTasks();
+  await seedActivity();
   console.log("Seed complete. Login: demo@bizdesk.app / " + DEMO_PASSWORD);
 }
 

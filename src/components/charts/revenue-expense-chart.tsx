@@ -32,23 +32,18 @@ const SERIES = {
   netCents: { name: "Net profit", color: "var(--success)" },
 } as const;
 
-function tooltip(currency: string) {
-  function MonthTooltip({ active, payload }: TooltipContentProps<number, string>) {
-    if (!active || !payload?.length) return null;
-    const point = payload[0]?.payload as MonthPoint | undefined;
-    if (!point) return null;
-    const keys = (Object.keys(SERIES) as (keyof typeof SERIES)[]).filter((k) =>
-      payload.some((p) => p.dataKey === k),
-    );
-    return (
-      <ChartTooltipCard
-        title={point.title}
-        currency={currency}
-        rows={keys.map((k) => ({ name: SERIES[k].name, value: point[k], color: SERIES[k].color }))}
-      />
-    );
-  }
-  return MonthTooltip;
+function MonthTooltip({ active, payload, currency }: TooltipContentProps & { currency: string }) {
+  if (!active || !payload?.length) return null;
+  const point = payload[0]?.payload as MonthPoint | undefined;
+  if (!point) return null;
+  const keys = (Object.keys(SERIES) as (keyof typeof SERIES)[]).filter((k) => payload.some((p) => p.dataKey === k));
+  return (
+    <ChartTooltipCard
+      title={point.title}
+      currency={currency}
+      rows={keys.map((k) => ({ name: SERIES[k].name, value: point[k], color: SERIES[k].color }))}
+    />
+  );
 }
 
 function LegendLabel(value: string) {
@@ -69,7 +64,6 @@ export function RevenueExpenseArea({
   currency: string;
   height?: number;
 }) {
-  const Content = tooltip(currency);
   return (
     <div role="img" aria-label={summary(data)} style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -93,7 +87,7 @@ export function RevenueExpenseArea({
             tick={AXIS_TICK}
             tickFormatter={(v: number) => compactMoney(v, currency)}
           />
-          <Tooltip content={Content} cursor={{ stroke: "var(--border)", strokeWidth: 1 }} />
+          <Tooltip content={(props) => <MonthTooltip {...props} currency={currency} />} cursor={{ stroke: "var(--border)", strokeWidth: 1 }} />
           <Legend verticalAlign="top" align="right" height={28} iconType="circle" iconSize={8} formatter={LegendLabel} />
           <Area
             type="monotone"
@@ -129,7 +123,6 @@ export function RevenueExpenseBars({
   currency: string;
   height?: number;
 }) {
-  const Content = tooltip(currency);
   return (
     <div role="img" aria-label={summary(data)} style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -143,7 +136,7 @@ export function RevenueExpenseBars({
             tick={AXIS_TICK}
             tickFormatter={(v: number) => compactMoney(v, currency)}
           />
-          <Tooltip content={Content} cursor={{ fill: "var(--muted)", opacity: 0.6 }} />
+          <Tooltip content={(props) => <MonthTooltip {...props} currency={currency} />} cursor={{ fill: "var(--muted)", opacity: 0.6 }} />
           <Legend verticalAlign="top" align="right" height={28} iconType="circle" iconSize={8} formatter={LegendLabel} />
           <Bar
             dataKey="revenueCents"

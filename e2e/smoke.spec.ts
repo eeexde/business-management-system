@@ -18,7 +18,8 @@ test("rejects bad credentials", async ({ page }) => {
   await page.getByLabel("Email").fill("demo@bizdesk.app");
   await page.getByLabel("Password").fill("wrong-password");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("alert")).toContainText("Invalid email or password");
+  await expect(page.getByText("Invalid email or password.")).toBeVisible();
+  await expect(page).toHaveURL(/\/login/);
 });
 
 test("every main section renders without errors", async ({ page }) => {
@@ -42,9 +43,39 @@ test("create a customer, then invoice them and record payment", async ({ page })
 
   await page.getByRole("link", { name: /new invoice/i }).click();
   await expect(page).toHaveURL(/\/invoices\/new\?customerId=\d+/);
-  await page.getByRole("button", { name: /save|create/i }).first().click();
-  // A brand-new invoice may need a line item; the form must either succeed or show a validation message.
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+
+  // One custom line: 2 × $50.00, no tax.
+  await page.getByLabel("Line 1 description").fill("Consulting hours");
+  await page.getByLabel("Line 1 quantity").fill("2");
+  await page.getByLabel("Line 1 unit price").fill("50");
+  await page.getByLabel("Tax rate (%)").fill("0");
+  await page.getByRole("button", { name: "Create draft" }).click();
+
+  await expect(page).toHaveURL(/\/invoices\/\d+$/);
+  await expect(page.getByRole("heading", { level: 1, name: /^INV-\d+$/ })).toBeVisible();
+  await expect(page.getByText("$100.00").first()).toBeVisible();
+
+  await page.getByRole("button", { name: "Mark as sent" }).click();
+  await expect(page.getByRole("button", { name: "Record payment" })).toBeVisible();
+
+  // Amount defaults to the full balance due.
+  await expect(page.getByLabel("Amount")).toHaveValue("100.00");
+  await page.getByRole("button", { name: "Record payment" }).click();
+  await expect(page.getByText(/Paid in full/)).toBeVisible();
+});
+
+test("staff cannot reach invoice editing", async ({ page }) => {
+  await login(page, "sam@bizdesk.app");
+  await page.goto("/invoices");
+  await expect(page.getByRole("link", { name: /new invoice/i })).toHaveCount(0);
+});
+
+test("CSV export downloads for a signed-in user", async ({ page }) => {
+  await login(page);
+  const res = await page.request.get("/reports/export/pnl?range=last-12-months");
+  expect(res.status()).toBe(200);
+  expect(res.headers()["content-type"]).toContain("text/csv");
+  expect((await res.text()).split("\n").length).toBeGreaterThan(2);
 });
 
 test("staff cannot see team management", async ({ page }) => {

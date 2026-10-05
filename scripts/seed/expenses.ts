@@ -97,8 +97,8 @@ export async function seedExpenses(): Promise<void> {
     };
 
     add({ description: `Office & warehouse rent — ${monthName}`, category: "rent", vendor: "Bayside Properties LLC", amountCents: 450000, date: on(1) });
-    add({ description: `Payroll — ${monthName} 1–15`, category: "payroll", vendor: "Gusto", amountCents: between(900000, 1200000), date: on(15) });
-    add({ description: `Payroll — ${monthName} 16–${lastDay}`, category: "payroll", vendor: "Gusto", amountCents: between(900000, 1200000), date: on(lastDay) });
+    add({ description: `Payroll — ${monthName} 1–15`, category: "payroll", vendor: "Gusto", amountCents: between(520000, 680000), date: on(15) });
+    add({ description: `Payroll — ${monthName} 16–${lastDay}`, category: "payroll", vendor: "Gusto", amountCents: between(520000, 680000), date: on(lastDay) });
 
     // Utilities: electricity is seasonal (higher in summer and winter).
     const season = [0, 1, 6, 7, 11].includes(m) ? 1.35 : 1;
@@ -113,12 +113,12 @@ export async function seedExpenses(): Promise<void> {
     const campaigns = heavy ? 3 : between(0, 2);
     for (let i = 0; i < campaigns; i++) {
       const c = pick(MARKETING);
-      add({ description: c.description, category: "marketing", vendor: c.vendor, amountCents: between(40000, heavy ? 380000 : 180000), date: on(between(3, 26)) });
+      add({ description: c.description, category: "marketing", vendor: c.vendor, amountCents: between(30000, heavy ? 240000 : 120000), date: on(between(3, 26)) });
     }
 
     if (rand() < 0.55 || heavy) {
       const t = pick(TRAVEL);
-      add({ description: t.description, category: "travel", vendor: t.vendor, amountCents: between(18000, 240000), date: on(between(4, 25)) });
+      add({ description: t.description, category: "travel", vendor: t.vendor, amountCents: between(15000, 160000), date: on(between(4, 25)) });
     }
 
     for (let i = between(1, 3); i > 0; i--) {
@@ -132,7 +132,7 @@ export async function seedExpenses(): Promise<void> {
         description: inv.description,
         category: "inventory",
         vendor: inv.vendor,
-        amountCents: between(280000, heavy ? 1100000 : 750000),
+        amountCents: between(150000, heavy ? 650000 : 380000),
         date: on(between(3, 24)),
         notes: rand() < 0.3 ? "Net 30 terms; paid on delivery." : null,
       });

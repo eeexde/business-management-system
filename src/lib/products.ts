@@ -74,7 +74,8 @@ export const ProductSchema = z.object({
   description: optionalText(2000),
   category: optionalText(60),
   price: money("price"),
-  cost: money("cost"),
+  // Cost is optional (e.g. services); blank means zero.
+  cost: z.preprocess((v) => (v === undefined || v === null || (typeof v === "string" && v.trim() === "") ? "0" : v), money("cost")),
   reorderLevel: wholeNumber("reorder level"),
   isService: z
     .string()

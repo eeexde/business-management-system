@@ -25,7 +25,9 @@ export function computeInvoiceTotals(
   const subtotalCents = lines.reduce((sum, l) => sum + lineTotal(l), 0);
   const discount = Math.min(Math.max(0, Math.round(discountCents)), subtotalCents);
   const taxable = subtotalCents - discount;
-  const taxCents = Math.round((taxable * Math.max(0, taxRatePercent)) / 100);
+  // Integer math in basis points: float rates like 4.35 would otherwise round 130.5 down to 130.
+  const basisPoints = Math.round(Math.max(0, taxRatePercent) * 100);
+  const taxCents = Math.floor((taxable * basisPoints + 5000) / 10000);
   return { subtotalCents, discountCents: discount, taxCents, totalCents: taxable + taxCents };
 }
 

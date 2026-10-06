@@ -68,6 +68,12 @@ test("staff cannot reach invoice editing", async ({ page }) => {
   await login(page, "sam@bizdesk.app");
   await page.goto("/invoices");
   await expect(page.getByRole("link", { name: /new invoice/i })).toHaveCount(0);
+
+  // Direct URL: redirected with an explanation, not a 500 error page.
+  await page.goto("/invoices/new");
+  await expect(page).toHaveURL(/\/invoices\?notice=forbidden/);
+  await expect(page.getByText("You don't have permission to do that.", { exact: false })).toBeVisible();
+  await expect(page.getByText("Something went wrong")).toHaveCount(0);
 });
 
 test("CSV export downloads for a signed-in user", async ({ page }) => {

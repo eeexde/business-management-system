@@ -55,7 +55,7 @@ Requires Node.js 20+.
 ```bash
 npm install
 cp .env.example .env          # then set SESSION_SECRET to a long random string
-npm run db:reset              # create local.db, push schema, seed demo data
+npm run db:reset              # create local.db, run migrations, seed demo data
 npm run dev                   # http://localhost:3000
 ```
 
@@ -64,8 +64,9 @@ npm run dev                   # http://localhost:3000
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` / `build` / `start` | Next.js dev server, production build, production server |
-| `npm run db:push` | Sync the schema to the database |
-| `npm run db:seed` / `db:reset` | Seed demo data / wipe, push, and seed |
+| `npm run db:migrate` | Apply SQL migrations in `drizzle/` (safe for existing data) |
+| `npm run db:generate` | Create a new migration after editing `src/db/schema.ts` |
+| `npm run db:seed` / `db:reset` | Seed demo data / wipe, migrate, and seed |
 | `npm test` | Unit tests (Vitest) |
 | `npm run test:e2e` | E2E smoke tests (Playwright) against a production build (run `npm run build` first) |
 | `npm run typecheck` / `lint` | TypeScript and ESLint |
@@ -81,7 +82,7 @@ SESSION_SECRET=<32+ random chars>
 DEMO_MODE=true   # for a public demo: account, team and settings become read-only
 ```
 
-Run `npm run db:push && npm run db:seed` once with those variables set.
+Run `npm run db:migrate && npm run db:seed` once with those variables set, and `npm run db:migrate` after each schema change.
 
 ## License
 

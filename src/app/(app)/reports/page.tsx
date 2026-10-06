@@ -59,7 +59,10 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
   await requirePermission("reports:view");
   const sp = await searchParams;
   const todayStr = today();
-  const range = resolveRange(getParam(sp, "range"), todayStr, { from: getParam(sp, "from"), to: getParam(sp, "to") });
+  const requested = getParam(sp, "range");
+  const range = resolveRange(requested, todayStr, { from: getParam(sp, "from"), to: getParam(sp, "to") });
+  // resolveRange falls back to the default for unknown keys or bad custom dates; tell the user.
+  const rangeFellBack = Boolean(requested) && requested !== range.key;
 
   const [settings, pnl, invoiced, productSales, customerSales, aging] = await Promise.all([
     getSettings(),
@@ -94,6 +97,11 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
         description={`${RANGE_LABELS[range.key]} · ${formatDate(range.from)} – ${formatDate(range.to)}`}
         actions={<RangePicker key={`${range.key}:${range.from}:${range.to}`} range={range} />}
       />
+      {rangeFellBack && (
+        <p role="status" className="-mt-2 rounded-lg bg-warning/10 px-4 py-2 text-sm text-warning">
+          That date range wasn&apos;t valid, so the report shows the last 12 months instead.
+        </p>
+      )}
 
       <section aria-label="Period summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Revenue (cash)" value={money(pnl.totals.revenueCents)} icon={TrendingUp} hint="Payments received" />

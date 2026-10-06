@@ -30,6 +30,15 @@ describe("computeInvoiceTotals", () => {
     expect(t.totalCents).toBe(0);
   });
 
+  it.each([
+    [3000, 4.35, 131],
+    [1500, 4.1, 62],
+    [2500, 1.14, 29],
+    [1000, 8.25, 83],
+  ])("rounds tax half-up exactly: %i cents at %f%% -> %i", (cents, rate, tax) => {
+    expect(computeInvoiceTotals([{ quantity: 1, unitPriceCents: cents }], rate).taxCents).toBe(tax);
+  });
+
   it("handles empty invoices", () => {
     expect(computeInvoiceTotals([], 10).totalCents).toBe(0);
   });

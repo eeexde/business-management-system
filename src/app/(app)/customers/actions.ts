@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
@@ -11,11 +11,30 @@ import { authorize } from "@/lib/auth";
 import { CustomerSchema } from "@/lib/customers";
 import { countCustomerInvoices, getCustomer } from "@/lib/queries/customers";
 
+/** Whether another customer already uses this email (case-insensitive). */
+async function emailTaken(email: string | null | undefined, excludeId?: number) {
+  if (!email) return false;
+  const match = sql`lower(${customers.email}) = ${email.toLowerCase()}`;
+  const [row] = await db
+    .select({ id: customers.id })
+    .from(customers)
+    .where(excludeId ? and(match, ne(customers.id, excludeId)) : match)
+    .limit(1);
+  return Boolean(row);
+}
+
+const EMAIL_TAKEN: ActionState = {
+  ok: false,
+  errors: { email: ["Another customer already uses this email."] },
+  message: "Please fix the highlighted fields.",
+};
+
 export async function createCustomer(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const auth = await authorize("customers:write");
   if (!auth.ok) return auth.state;
   const parsed = CustomerSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return fieldErrors(parsed.error);
+  if (await emailTaken(parsed.data.email)) return EMAIL_TAKEN;
 
   const [row] = await db.insert(customers).values(parsed.data).returning({ id: customers.id });
   await logActivity({
@@ -35,6 +54,7 @@ export async function updateCustomer(id: number, _prev: ActionState, formData: F
   if (!auth.ok) return auth.state;
   const parsed = CustomerSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return fieldErrors(parsed.error);
+  if (await emailTaken(parsed.data.email, id)) return EMAIL_TAKEN;
 
   const updated = await db
     .update(customers)

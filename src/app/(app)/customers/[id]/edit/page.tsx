@@ -14,7 +14,7 @@ export default async function EditCustomerPage({ params }: PageProps<"/customers
   if (!Number.isInteger(id)) notFound();
   const [user, customer] = await Promise.all([requireUser(), getCustomer(id)]);
   if (!customer) notFound();
-  if (!can(user.role, "customers:write")) redirect(`/customers/${id}`);
+  if (!can(user.role, "customers:write")) redirect(`/customers/${id}?notice=forbidden`);
 
   return (
     <div className="mx-auto max-w-3xl">

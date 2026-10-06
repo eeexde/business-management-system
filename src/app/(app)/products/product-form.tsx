@@ -113,7 +113,6 @@ export function ProductForm({ action, product, categories, cancelHref }: Props) 
               placeholder="0.00"
               value={cost}
               onChange={(e) => setCost(e.target.value)}
-              required
               {...invalid("cost")}
             />
           </Field>

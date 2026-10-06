@@ -87,6 +87,11 @@ export default async function InvoiceDetailPage({ params, searchParams }: PagePr
             canEdit={canWrite && isDraft}
             canSend={canWrite && isDraft}
             canVoid={canWrite && canVoidInvoice(invoice)}
+            voidBlockedReason={
+              canWrite && invoice.status === "sent" && invoice.amountPaidCents > 0
+                ? "This invoice has payments, so it can't be voided. Settle the balance or issue a credit instead."
+                : undefined
+            }
             canDuplicate={canWrite}
             canDelete={isDraft && can(user.role, "invoices:delete")}
           />

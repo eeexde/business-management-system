@@ -8,13 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "db:push": "drizzle-kit push --force",
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx scripts/seed.ts",
-    "db:reset": "node scripts/reset-db.mjs && npm run db:push && npm run db:seed",
+    "db:reset": "node scripts/reset-db.mjs && npm run db:migrate && npm run db:seed",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

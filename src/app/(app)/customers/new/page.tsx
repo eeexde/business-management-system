@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "New customer" };
 
 export default async function NewCustomerPage() {
   const user = await requireUser();
-  if (!can(user.role, "customers:write")) redirect("/customers");
+  if (!can(user.role, "customers:write")) redirect("/customers?notice=forbidden");
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader title="New customer" description="Add a client you sell to." />

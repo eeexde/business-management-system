@@ -18,7 +18,7 @@ export default async function EditExpensePage({ params }: PageProps<"/expenses/[
 
   const [user, settings, expense] = await Promise.all([requireUser(), getSettings(), getExpense(id)]);
   if (!expense) notFound();
-  if (!can(user.role, "expenses:write")) redirect("/expenses");
+  if (!can(user.role, "expenses:write")) redirect("/expenses?notice=forbidden");
 
   return (
     <div className="mx-auto max-w-2xl">

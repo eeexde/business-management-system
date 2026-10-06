@@ -7,7 +7,7 @@ if (!/^\d+$/.test(port)) throw new Error(`Invalid port: ${port}`);
 const env = { ...process.env, DATABASE_URL: "file:e2e.db" };
 
 for (const f of ["e2e.db", "e2e.db-journal", "e2e.db-wal", "e2e.db-shm"]) rmSync(f, { force: true });
-execSync("npx drizzle-kit push --force", { env, stdio: "inherit" });
+execSync("npx drizzle-kit migrate", { env, stdio: "inherit" });
 execSync("npx tsx scripts/seed.ts", { env, stdio: "inherit" });
 
 const server = spawn("npx", ["next", "start", "-p", port], { env, stdio: "inherit", shell: true });

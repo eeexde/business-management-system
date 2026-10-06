@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, gte, inArray, lt, lte, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, inArray, lt, lte, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { activityLog, customers, expenses, invoices, payments, products, tasks, users } from "@/db/schema";
 import { addMonths, endOfMonth, startOfMonth } from "@/lib/reports";
@@ -31,7 +31,8 @@ export type DashboardKpis = {
 
 export async function getDashboardKpis(today: string): Promise<DashboardKpis> {
   const monthStart = startOfMonth(today);
-  const monthEnd = endOfMonth(today);
+  // Month-to-date, the same window as Reports "This month", so the two always agree.
+  const monthEnd = today;
   const lastMonthStart = `${addMonths(today.slice(0, 7), -1)}-01`;
   const lastMonthEnd = endOfMonth(lastMonthStart);
   const balance = sql`${invoices.totalCents} - ${invoices.amountPaidCents}`;
@@ -60,14 +61,16 @@ export async function getDashboardKpis(today: string): Promise<DashboardKpis> {
           count: sql<number>`count(*)`.mapWith(Number),
         })
         .from(invoices)
-        .where(eq(invoices.status, "sent")),
+        .where(and(eq(invoices.status, "sent"), gt(invoices.totalCents, invoices.amountPaidCents))),
       db
         .select({
           cents: sql<number>`coalesce(sum(${balance}), 0)`.mapWith(Number),
           count: sql<number>`count(*)`.mapWith(Number),
         })
         .from(invoices)
-        .where(and(eq(invoices.status, "sent"), lt(invoices.dueDate, today))),
+        .where(
+          and(eq(invoices.status, "sent"), gt(invoices.totalCents, invoices.amountPaidCents), lt(invoices.dueDate, today)),
+        ),
       db
         .select({ count: sql<number>`count(*)`.mapWith(Number) })
         .from(products)

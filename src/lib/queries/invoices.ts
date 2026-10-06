@@ -308,7 +308,12 @@ export async function markInvoiceSent(
       });
       if (updated && updated.stock < 0) negativeStock.push(updated);
     }
-    await tx.update(invoices).set({ status: "sent" }).where(eq(invoices.id, id));
+    // A zero-total invoice (e.g. fully discounted) has nothing to collect: it is settled on send.
+    const settled = invoice.totalCents === 0;
+    await tx
+      .update(invoices)
+      .set(settled ? { status: "paid", paidAt: new Date().toISOString() } : { status: "sent" })
+      .where(eq(invoices.id, id));
     return { ok: true, number: invoice.number, negativeStock };
   });
 }
@@ -324,6 +329,7 @@ export async function recordPayment(
     const check = validatePayment(invoice, payment.amountCents, currency);
     if (!check.ok) return check;
     if (payment.date < invoice.issueDate) return { ok: false, error: "Payment date can't be before the issue date." };
+    if (payment.date > today()) return { ok: false, error: "Payment date can't be in the future." };
 
     await tx.insert(payments).values({
       invoiceId: id,

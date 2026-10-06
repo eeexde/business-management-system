@@ -11,7 +11,7 @@ export const metadata = { title: "New expense" };
 
 export default async function NewExpensePage() {
   const [user, settings] = await Promise.all([requireUser(), getSettings()]);
-  if (!can(user.role, "expenses:write")) redirect("/expenses");
+  if (!can(user.role, "expenses:write")) redirect("/expenses?notice=forbidden");
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title="New expense" description="Record a business cost." />

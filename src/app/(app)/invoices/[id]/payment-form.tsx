@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { Field, Input, Select } from "@/components/ui/input";
-import { SubmitButton } from "@/components/ui/submit-button";
 import { initialActionState, type ActionState } from "@/lib/action-state";
 
 type Option = { value: string; label: string };
@@ -90,9 +90,18 @@ export function PaymentForm({
   minDate: string;
   methods: Option[];
 }) {
-  const [state, formAction] = useActionState(action, initialActionState);
+  const [state, formAction, pending] = useActionState(action, initialActionState);
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      // Submit via a transition rather than <form action>: React 19 resets the form DOM after an
+      // action, which desyncs these controlled fields (the select would show one method and send another).
+      onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        startTransition(() => formAction(formData));
+      }}
+      className="flex flex-col gap-4"
+    >
       <PaymentFields
         key={balance}
         defaultAmount={balanceInput}
@@ -102,9 +111,9 @@ export function PaymentForm({
         errors={state.errors}
       />
       <FormMessage state={state.errors?.amount ? { ...state, message: undefined } : state} />
-      <SubmitButton pendingText="Recording…" className="w-full">
-        Record payment
-      </SubmitButton>
+      <Button type="submit" className="w-full" disabled={pending} aria-disabled={pending}>
+        {pending ? "Recording…" : "Record payment"}
+      </Button>
     </form>
   );
 }

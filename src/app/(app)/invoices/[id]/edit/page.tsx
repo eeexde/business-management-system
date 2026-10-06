@@ -11,7 +11,7 @@ import { InvoiceForm } from "../../invoice-form";
 export const metadata = { title: "Edit invoice" };
 
 export default async function EditInvoicePage({ params }: PageProps<"/invoices/[id]/edit">) {
-  await requirePermission("invoices:write");
+  await requirePermission("invoices:write", "/invoices");
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id <= 0) notFound();
   const [invoice, settings, { customers, products }] = await Promise.all([

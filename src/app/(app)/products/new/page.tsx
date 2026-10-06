@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "New product" };
 
 export default async function NewProductPage() {
   const user = await requireUser();
-  if (!can(user.role, "products:write")) redirect("/products");
+  if (!can(user.role, "products:write")) redirect("/products?notice=forbidden");
   const categories = await listProductCategories();
   return (
     <div className="mx-auto max-w-3xl">

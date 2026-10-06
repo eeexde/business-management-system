@@ -12,7 +12,7 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
       <div>
         <h1 className="text-xl font-semibold">Something went wrong</h1>
         <p className="mt-1 max-w-md text-sm text-muted-foreground">
-          {error.name === "ForbiddenError" ? error.message : "An unexpected error occurred. Please try again."}
+          An unexpected error occurred. Please try again.
         </p>
         {error.digest && <p className="mt-2 font-mono text-xs text-muted-foreground">Ref: {error.digest}</p>}
       </div>

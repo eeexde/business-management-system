@@ -14,7 +14,7 @@ import { InvoiceForm } from "../invoice-form";
 export const metadata = { title: "New invoice" };
 
 export default async function NewInvoicePage({ searchParams }: PageProps<"/invoices/new">) {
-  await requirePermission("invoices:write");
+  await requirePermission("invoices:write", "/invoices");
   const params = await searchParams;
   const [settings, { customers, products }] = await Promise.all([getSettings(), getInvoiceFormOptions()]);
 

@@ -14,7 +14,7 @@ export default async function EditProductPage({ params }: PageProps<"/products/[
   if (!Number.isInteger(id)) notFound();
   const [user, product, categories] = await Promise.all([requireUser(), getProduct(id), listProductCategories()]);
   if (!product) notFound();
-  if (!can(user.role, "products:write")) redirect(`/products/${id}`);
+  if (!can(user.role, "products:write")) redirect(`/products/${id}?notice=forbidden`);
 
   return (
     <div className="mx-auto max-w-3xl">

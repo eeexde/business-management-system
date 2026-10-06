@@ -17,6 +17,7 @@ export function InvoiceActions({
   canVoid,
   canDuplicate,
   canDelete,
+  voidBlockedReason,
 }: {
   id: number;
   canEdit: boolean;
@@ -24,6 +25,8 @@ export function InvoiceActions({
   canVoid: boolean;
   canDuplicate: boolean;
   canDelete: boolean;
+  /** Shown instead of the Void button when voiding is not allowed for a reason worth explaining. */
+  voidBlockedReason?: string;
 }) {
   const [result, setResult] = useState<ActionState>();
   const [pending, startTransition] = useTransition();
@@ -64,6 +67,7 @@ export function InvoiceActions({
           </ConfirmButton>
         )}
       </div>
+      {!canVoid && voidBlockedReason && <p className="text-xs text-muted-foreground">{voidBlockedReason}</p>}
       {result?.message && (
         <FormMessage
           state={result}

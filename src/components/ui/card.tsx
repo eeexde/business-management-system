@@ -1,7 +1,8 @@
 import { cn } from "@/lib/utils";
 
 export function Card({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("rounded-xl border bg-card shadow-sm", className)} {...props} />;
+  // min-w-0 lets cards shrink inside grid/flex parents so wide tables scroll instead of overflowing.
+  return <div className={cn("min-w-0 rounded-xl border bg-card shadow-sm", className)} {...props} />;
 }
 
 export function CardHeader({
@@ -21,7 +22,7 @@ export function CardHeader({
         <h2 className="text-sm font-semibold">{title}</h2>
         {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
       </div>
-      {action}
+      {action && <div className="shrink-0 whitespace-nowrap">{action}</div>}
     </div>
   );
 }

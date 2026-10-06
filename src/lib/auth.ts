@@ -74,17 +74,13 @@ export async function requireUser(): Promise<CurrentUser> {
   return user;
 }
 
-export class ForbiddenError extends Error {
-  constructor(permission: Permission) {
-    super(`You don't have permission to do that (${permission}).`);
-    this.name = "ForbiddenError";
-  }
-}
-
-/** Use in Server Actions: throws ForbiddenError when the user lacks the permission. */
-export async function requirePermission(permission: Permission): Promise<CurrentUser> {
+/**
+ * Use in pages: redirects users lacking the permission to `fallback` with a notice
+ * banner (see NoticeBanner) instead of rendering an error page.
+ */
+export async function requirePermission(permission: Permission, fallback = "/dashboard"): Promise<CurrentUser> {
   const user = await requireUser();
-  if (!can(user.role, permission)) throw new ForbiddenError(permission);
+  if (!can(user.role, permission)) redirect(`${fallback}?notice=forbidden`);
   return user;
 }
 

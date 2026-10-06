@@ -4,7 +4,7 @@ async function login(page: Page, email = "demo@bizdesk.app", password = "demo123
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
@@ -17,9 +17,16 @@ test("rejects bad credentials", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("Email").fill("demo@bizdesk.app");
   await page.getByLabel("Password").fill("wrong-password");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.getByText("Invalid email or password.")).toBeVisible();
   await expect(page).toHaveURL(/\/login/);
+});
+
+test("one-click demo sign-in signs in with that role", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByRole("button", { name: /Sign in as staff/ }).click();
+  await expect(page).toHaveURL(/\/dashboard/);
+  await expect(page.getByText("Sam Lee", { exact: true })).toBeVisible();
 });
 
 test("every main section renders without errors", async ({ page }) => {

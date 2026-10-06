@@ -52,7 +52,7 @@ export function displayStatus(
 
 export const STATUS_TONE: Record<DisplayStatus, BadgeTone> = {
   draft: "neutral",
-  sent: "primary",
+  sent: "info",
   partial: "warning",
   paid: "success",
   overdue: "danger",

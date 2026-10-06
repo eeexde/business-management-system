@@ -180,7 +180,7 @@ export function InvoiceForm({
         />
         <CardBody className="flex flex-col gap-3">
           <div
-            className="hidden gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground md:grid md:grid-cols-[minmax(0,12rem)_minmax(0,1fr)_5rem_7.5rem_7rem_2.25rem]"
+            className="hidden gap-2 text-xs font-medium text-muted-foreground md:grid md:grid-cols-[minmax(0,12rem)_minmax(0,1fr)_5rem_7.5rem_7rem_2.25rem]"
             aria-hidden
           >
             <span>Product</span>

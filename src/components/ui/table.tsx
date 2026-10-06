@@ -9,7 +9,7 @@ export function Table({ className, ...props }: React.ComponentProps<"table">) {
 }
 
 export function THead(props: React.ComponentProps<"thead">) {
-  return <thead className="border-b bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground" {...props} />;
+  return <thead className="border-b bg-muted/50 text-left text-xs font-medium text-muted-foreground" {...props} />;
 }
 
 export function TBody({ className, ...props }: React.ComponentProps<"tbody">) {

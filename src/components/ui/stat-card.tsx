@@ -25,8 +25,8 @@ export function StatCard({
     <Card className="p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-          <p className="mt-2 truncate text-2xl font-semibold tabular-nums">{value}</p>
+          <p className="text-sm text-muted-foreground">{label}</p>
+          <p className="mt-1.5 truncate font-display text-2xl font-semibold tabular-nums">{value}</p>
           {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
         </div>
         <div className={cn("rounded-lg p-2", toneClass)}>

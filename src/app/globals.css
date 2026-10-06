@@ -2,34 +2,46 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * "Ledger" palette: cool paper, ink, and account-book green.
+ * Amber is the hi-vis accent (warehouse safety yellow) and is used sparingly.
+ */
 :root {
-  --background: #f7f7f8;
-  --foreground: #18181b;
+  --background: #f4f6f7;
+  --foreground: #17212b;
   --card: #ffffff;
-  --muted: #f1f1f3;
-  --muted-foreground: #6b6b76;
-  --border: #e4e4e8;
-  --primary: #4f46e5;
+  --muted: #eceff1;
+  --muted-foreground: #5d6a76;
+  --border: #dce1e5;
+  --primary: #0d6b57;
   --primary-foreground: #ffffff;
-  --success: #059669;
-  --warning: #d97706;
-  --danger: #dc2626;
-  --ring: #818cf8;
+  --ink: #17212b;
+  --ink-foreground: #e9eef1;
+  --amber: #e9a50c;
+  --info: #2a5db0;
+  --success: #0f7a4a;
+  --warning: #b86e00;
+  --danger: #c2362f;
+  --ring: #3aa58b;
 }
 
 .dark {
-  --background: #0c0c0f;
-  --foreground: #ededf0;
-  --card: #151519;
-  --muted: #1d1d23;
-  --muted-foreground: #9a9aa6;
-  --border: #2a2a32;
-  --primary: #818cf8;
-  --primary-foreground: #0c0c0f;
-  --success: #34d399;
-  --warning: #fbbf24;
-  --danger: #f87171;
-  --ring: #6366f1;
+  --background: #0f161c;
+  --foreground: #e6ebee;
+  --card: #161f27;
+  --muted: #1d2832;
+  --muted-foreground: #95a3ae;
+  --border: #283541;
+  --primary: #3fb595;
+  --primary-foreground: #08221b;
+  --ink: #0a1015;
+  --ink-foreground: #e6ebee;
+  --amber: #f0b429;
+  --info: #7aa7f0;
+  --success: #3fc488;
+  --warning: #f0b429;
+  --danger: #f0726a;
+  --ring: #3fb595;
 }
 
 @theme inline {
@@ -41,52 +53,97 @@
   --color-border: var(--border);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-amber: var(--amber);
+  --color-info: var(--info);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-ring: var(--ring);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-public-sans);
+  --font-display: var(--font-familjen);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-familjen);
+  letter-spacing: -0.01em;
 }
 
 * {
   border-color: var(--border);
 }
 
+/* Rubber stamp landing on the login invoice slip: the page's one orchestrated moment. */
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: rotate(-14deg) scale(1.8);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(-11deg) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-12deg) scale(1);
+  }
+}
+
+.stamp {
+  animation: stamp-in 420ms cubic-bezier(0.2, 0.9, 0.3, 1.2) 700ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp {
+    animation: none;
+    transform: rotate(-12deg);
+  }
+}
+
 @media print {
   .no-print {
     display: none !important;
   }
-  body {
-    background: white;
-  }
-  /* Print in the light palette even when dark mode is on, edge to edge without the sidebar offset. */
+
+  /* Invoices print on white with the light palette, even when dark mode is active. */
   :root,
   .dark {
     --background: #ffffff;
-    --foreground: #18181b;
+    --foreground: #17212b;
     --card: #ffffff;
-    --muted: #f1f1f3;
-    --muted-foreground: #52525b;
-    --border: #e4e4e8;
-    --primary: #4f46e5;
-    --success: #059669;
-    --warning: #d97706;
-    --danger: #dc2626;
+    --muted: #eceff1;
+    --muted-foreground: #5d6a76;
+    --border: #dce1e5;
+    --primary: #0d6b57;
+    --success: #0f7a4a;
+    --warning: #b86e00;
+    --danger: #c2362f;
   }
+
+  body {
+    background: #ffffff;
+  }
+
   main {
     padding-left: 0 !important;
   }
+
   main > div {
     max-width: none !important;
     padding: 0 !important;
   }
+
   @page {
-    margin: 16mm;
+    margin: 14mm;
   }
 }

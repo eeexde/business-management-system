@@ -26,7 +26,7 @@ test("one-click demo sign-in signs in with that role", async ({ page }) => {
   await page.goto("/login");
   await page.getByRole("button", { name: /Sign in as staff/ }).click();
   await expect(page).toHaveURL(/\/dashboard/);
-  await expect(page.getByText("Sam Lee", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /, Sam$/ })).toBeVisible();
 });
 
 test("every main section renders without errors", async ({ page }) => {

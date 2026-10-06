@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Familjen_Grotesk, Geist_Mono, Public_Sans } from "next/font/google";
+import { resolveSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 // Familjen Grotesk (ink-trap grotesque) for headings; Public Sans for UI text with tabular figures.
@@ -8,8 +9,8 @@ const body = Public_Sans({ variable: "--font-public-sans", subsets: ["latin"] })
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  // Absolute base for the Open Graph image (src/app/opengraph-image.jpg). Set SITE_URL when deployed.
-  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
+  // Absolute base for the Open Graph image (src/app/opengraph-image.jpg).
+  metadataBase: resolveSiteUrl(),
   title: { default: "BizDesk", template: "%s · BizDesk" },
   openGraph: { siteName: "BizDesk", type: "website" },
   description: "All-in-one business management: customers, inventory, invoicing, expenses, tasks and reports.",

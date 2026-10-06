@@ -1,6 +1,6 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { db } from "@/db";
@@ -19,9 +19,12 @@ export type CurrentUser = Pick<User, "id" | "name" | "email" | "role">;
 export async function createSession(payload: SessionPayload) {
   const token = await encryptSession(payload);
   const store = await cookies();
+  // Secure whenever the request arrived over HTTPS (directly or via a proxy). Plain-HTTP
+  // self-hosting, e.g. on a LAN, would otherwise have the cookie silently dropped by browsers.
+  const proto = (await headers()).get("x-forwarded-proto")?.split(",")[0]?.trim();
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: proto === "https",
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_TTL_SECONDS,

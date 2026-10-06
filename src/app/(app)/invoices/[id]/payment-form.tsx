@@ -13,12 +13,14 @@ function PaymentFields({
   defaultAmount,
   defaultDate,
   minDate,
+  maxDate,
   methods,
   errors,
 }: {
   defaultAmount: string;
   defaultDate: string;
   minDate: string;
+  maxDate: string;
   methods: Option[];
   errors: ActionState["errors"];
 }) {
@@ -39,13 +41,15 @@ function PaymentFields({
           required
         />
       </Field>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
         <Field label="Date" htmlFor="date" errors={errors?.date}>
           <Input
             id="date"
             name="date"
             type="date"
             min={minDate}
+            max={maxDate}
+            aria-invalid={Boolean(errors?.date)}
             value={date}
             onChange={(e) => setDate(e.target.value)}
             required
@@ -81,6 +85,7 @@ export function PaymentForm({
   balanceInput,
   defaultDate,
   minDate,
+  maxDate,
   methods,
 }: {
   action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
@@ -88,6 +93,7 @@ export function PaymentForm({
   balanceInput: string;
   defaultDate: string;
   minDate: string;
+  maxDate: string;
   methods: Option[];
 }) {
   const [state, formAction, pending] = useActionState(action, initialActionState);
@@ -107,6 +113,7 @@ export function PaymentForm({
         defaultAmount={balanceInput}
         defaultDate={defaultDate}
         minDate={minDate}
+        maxDate={maxDate}
         methods={methods}
         errors={state.errors}
       />

@@ -267,12 +267,12 @@ export default async function DashboardPage() {
                   const status = displayStatus(inv, todayStr);
                   return (
                     <TR key={inv.id}>
-                      <TD className="font-medium">
+                      <TD className="whitespace-nowrap font-medium">
                         <Link href={`/invoices/${inv.id}`} className="hover:underline">
                           {inv.number}
                         </Link>
                       </TD>
-                      <TD className="max-w-40 truncate">{inv.customerName}</TD>
+                      <TD className="max-w-28 truncate sm:max-w-40">{inv.customerName}</TD>
                       <TD className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
                         {formatDate(inv.issueDate)}
                       </TD>

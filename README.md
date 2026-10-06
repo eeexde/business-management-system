@@ -1,5 +1,7 @@
 # BizDesk
 
+[![CI](https://github.com/eeexde/business-management-system/actions/workflows/ci.yml/badge.svg)](https://github.com/eeexde/business-management-system/actions/workflows/ci.yml)
+
 **All-in-one business management for small teams.** Customers, inventory, invoicing, expenses, tasks, and financial reports in one fast, role-aware web app.
 
 Built with Next.js 16 (App Router, Server Components, Server Actions), TypeScript, Drizzle ORM on SQLite/libSQL, and Tailwind CSS v4.

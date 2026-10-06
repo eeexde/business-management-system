@@ -272,6 +272,7 @@ export default async function InvoiceDetailPage({ params, searchParams }: PagePr
                   balanceInput={centsToInput(balance)}
                   defaultDate={asOf < invoice.issueDate ? invoice.issueDate : asOf}
                   minDate={invoice.issueDate}
+                  maxDate={asOf}
                   methods={PAYMENT_METHODS.map((m) => ({ value: m, label: PAYMENT_METHOD_LABELS[m] }))}
                 />
               </CardBody>

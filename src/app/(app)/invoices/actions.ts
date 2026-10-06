@@ -87,7 +87,11 @@ export async function recordPayment(id: number, _prev: ActionState, formData: Fo
   const { currency } = await getSettings();
   const { amount, ...rest } = parsed.data;
   const result = await q.recordPayment(id, { amountCents: amount, ...rest }, currency);
-  if (!result.ok) return { ok: false, message: result.error, errors: { amount: [result.error] } };
+  if (!result.ok) {
+    // Attach the error to the field it is about so the right input is flagged.
+    const field = /date/i.test(result.error) ? "date" : "amount";
+    return { ok: false, message: result.error, errors: { [field]: [result.error] } };
+  }
   await logActivity({
     userId: auth.user.id,
     action: "invoice.payment",

@@ -1,5 +1,6 @@
 import "server-only";
-import { and, desc, eq, gte, lt, or, sql, sum, type Column, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, lt, or, sql, sum, type SQL } from "drizzle-orm";
+import { contains } from "@/lib/sql-search";
 import { db } from "@/db";
 import { EXPENSE_CATEGORIES, expenses, type ExpenseCategory } from "@/db/schema";
 import { addMonths, isMonthKey, monthKey, monthRange, type CategoryTotal } from "@/lib/expenses";
@@ -26,11 +27,6 @@ export function parseExpenseFilters(params: Record<string, string | string[] | u
       : undefined,
     month: isMonthKey(month) ? month : undefined,
   };
-}
-
-/** Case-insensitive substring match without LIKE wildcards (so "%" and "_" in the query are literal). */
-function contains(column: Column, needle: string) {
-  return sql`instr(lower(coalesce(${column}, '')), ${needle.toLowerCase()}) > 0`;
 }
 
 function whereFor(filters: ExpenseFilters, { ignoreCategory = false } = {}) {

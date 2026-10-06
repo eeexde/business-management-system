@@ -51,6 +51,9 @@ export const LineItemSchema = z.object({
 
 export type LineItemInput = z.output<typeof LineItemSchema>;
 
+/** Upper bound on an invoice subtotal ($10B) so cent math stays well inside safe integers. */
+export const MAX_INVOICE_CENTS = 1_000_000_000_000;
+
 /** The whole invoice editor form. `items` arrives as a JSON string in a hidden input. */
 export const InvoiceFormSchema = z
   .object({
@@ -86,7 +89,11 @@ export const InvoiceFormSchema = z
         .max(100, { error: "Too many line items (max 100)." }),
     ),
   })
-  .refine((v) => v.dueDate >= v.issueDate, { error: "Due date can't be before the issue date.", path: ["dueDate"] });
+  .refine((v) => v.dueDate >= v.issueDate, { error: "Due date can't be before the issue date.", path: ["dueDate"] })
+  .refine((v) => v.items.reduce((sum, l) => sum + l.quantity * l.unitPrice, 0) <= MAX_INVOICE_CENTS, {
+    error: "Invoice total is too large.",
+    path: ["items"],
+  });
 
 export type InvoiceFormInput = z.output<typeof InvoiceFormSchema>;
 

@@ -1,5 +1,7 @@
 import { BarChart3, Briefcase, FileText, Package } from "lucide-react";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -11,6 +13,7 @@ const FEATURES = [
 ];
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
+  if (await getCurrentUser()) redirect("/dashboard");
   const { next } = await searchParams;
   return (
     <div className="grid min-h-screen lg:grid-cols-2">

@@ -1,5 +1,6 @@
 import "server-only";
-import { and, asc, count, desc, eq, gte, inArray, isNotNull, like, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, isNotNull, or, sql, type SQL } from "drizzle-orm";
+import { contains } from "@/lib/sql-search";
 import { db } from "@/db";
 import { invoiceItems, invoices, products, stockMovements, users } from "@/db/schema";
 
@@ -19,7 +20,7 @@ const lowStockCondition = sql`(${products.isService} = 0 and ${products.stock} <
 function productFilter({ q, category, lowStock, showArchived }: ProductFilters): SQL | undefined {
   const conditions: (SQL | undefined)[] = [];
   if (!showArchived) conditions.push(eq(products.archived, false));
-  if (q) conditions.push(or(like(products.name, `%${q}%`), like(products.sku, `%${q}%`)));
+  if (q) conditions.push(or(contains(products.name, q), contains(products.sku, q)));
   if (category) conditions.push(eq(products.category, category));
   if (lowStock) conditions.push(lowStockCondition);
   return and(...conditions);

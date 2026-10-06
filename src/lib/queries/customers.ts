@@ -1,5 +1,6 @@
 import "server-only";
-import { and, asc, count, desc, eq, like, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, ne, or, sql, type SQL } from "drizzle-orm";
+import { contains } from "@/lib/sql-search";
 import { db } from "@/db";
 import { customers, invoices, tasks, users } from "@/db/schema";
 
@@ -25,8 +26,7 @@ function invoiceStatsSubquery() {
 
 function searchFilter(q: string | undefined): SQL | undefined {
   if (!q) return undefined;
-  const pattern = `%${q}%`;
-  return or(like(customers.name, pattern), like(customers.company, pattern), like(customers.email, pattern));
+  return or(contains(customers.name, q), contains(customers.company, q), contains(customers.email, q));
 }
 
 export async function listCustomers({ q, page = 1 }: { q?: string; page?: number }) {

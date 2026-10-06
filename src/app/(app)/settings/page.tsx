@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { requireUser } from "@/lib/auth";
 import { can } from "@/lib/permissions";
+import { DEMO_LOCKED_MESSAGE, DEMO_MODE } from "@/lib/demo";
 import { getSettings } from "@/lib/queries/settings";
 import { listTeam } from "@/lib/queries/team";
 import { formatDate, initials } from "@/lib/utils";
@@ -35,6 +36,11 @@ export default async function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Settings" description="Your business profile, your account and your team." />
+      {DEMO_MODE && (
+        <p role="note" className="mb-6 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning">
+          {DEMO_LOCKED_MESSAGE}
+        </p>
+      )}
 
       <Card id="business">
         <CardHeader

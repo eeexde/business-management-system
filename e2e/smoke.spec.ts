@@ -84,10 +84,27 @@ test("staff cannot see team management", async ({ page }) => {
   await expect(page.getByRole("button", { name: /add user|invite|create user/i })).toHaveCount(0);
 });
 
-test("logout ends the session", async ({ page }) => {
-  await login(page);
+test("logout ends the session and revokes the old cookie", async ({ page, context, browser }) => {
+  await login(page, "priya@bizdesk.app");
+  const stolen = (await context.cookies()).find((c) => c.name === "bizdesk_session");
+  expect(stolen).toBeDefined();
+
   await page.getByRole("button", { name: "Sign out" }).first().click();
   await expect(page).toHaveURL(/\/login/);
   await page.goto("/dashboard");
   await expect(page).toHaveURL(/\/login/);
+
+  // Replaying the pre-logout cookie in a fresh browser must not get in.
+  const other = await browser.newContext();
+  await other.addCookies([stolen!]);
+  const replay = await other.newPage();
+  await replay.goto("/dashboard");
+  await expect(replay).toHaveURL(/\/login/);
+  await other.close();
+});
+
+test("security headers are set", async ({ request }) => {
+  const res = await request.get("/login");
+  expect(res.headers()["x-frame-options"]).toBe("DENY");
+  expect(res.headers()["content-security-policy"]).toContain("frame-ancestors 'none'");
 });

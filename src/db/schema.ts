@@ -16,6 +16,8 @@ export const users = sqliteTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: text("role", { enum: ROLES }).notNull().default("staff"),
+  /** Bumped on logout, password change and role change; sessions carrying an older version are rejected. */
+  sessionVersion: integer("session_version").notNull().default(0),
   createdAt: createdAt(),
 });
 

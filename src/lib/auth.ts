@@ -1,5 +1,5 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
@@ -33,18 +33,39 @@ export async function deleteSession() {
   store.delete(SESSION_COOKIE);
 }
 
-/** Current user from the session cookie, re-validated against the DB. Cached per request. */
+/**
+ * Current user from the session cookie, re-validated against the DB. Cached per request.
+ * Rejects sessions for deleted users and sessions issued before the user's sessionVersion
+ * was bumped (logout, password change, role change), so stolen cookies can be revoked.
+ */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const store = await cookies();
   const session = await decryptSession(store.get(SESSION_COOKIE)?.value);
   if (!session) return null;
   const [user] = await db
-    .select({ id: users.id, name: users.name, email: users.email, role: users.role })
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      sessionVersion: users.sessionVersion,
+    })
     .from(users)
     .where(eq(users.id, session.userId))
     .limit(1);
-  return user ?? null;
+  if (!user || user.sessionVersion !== session.v) return null;
+  return { id: user.id, name: user.name, email: user.email, role: user.role };
 });
+
+/** Invalidate every existing session for a user. Returns the new version. */
+export async function revokeSessions(userId: number): Promise<number> {
+  const [row] = await db
+    .update(users)
+    .set({ sessionVersion: sql`${users.sessionVersion} + 1` })
+    .where(eq(users.id, userId))
+    .returning({ v: users.sessionVersion });
+  return row?.v ?? 0;
+}
 
 /** Use in pages/layouts/actions: redirects to /login when signed out. */
 export async function requireUser(): Promise<CurrentUser> {

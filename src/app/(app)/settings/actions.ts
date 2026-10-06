@@ -1,14 +1,15 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { count, eq } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
 import { ROLES, settings, users, type Role } from "@/db/schema";
 import { fieldErrors, type ActionState } from "@/lib/action-state";
 import { logActivity } from "@/lib/activity";
-import { authorize, requireUser } from "@/lib/auth";
+import { authorize, createSession, requireUser, revokeSessions } from "@/lib/auth";
+import { demoLocked } from "@/lib/demo";
 import { CURRENCY_CODES } from "@/lib/settings";
 import { checkRemoveUser, checkRoleChange } from "@/lib/team";
 
@@ -45,6 +46,8 @@ const SettingsSchema = z.object({
 });
 
 export async function updateSettings(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const locked = demoLocked();
+  if (locked) return locked;
   const auth = await authorize("settings:manage");
   if (!auth.ok) return auth.state;
   const parsed = SettingsSchema.safeParse(Object.fromEntries(formData));
@@ -71,6 +74,8 @@ const ProfileSchema = z.object({
 });
 
 export async function updateProfile(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const locked = demoLocked();
+  if (locked) return locked;
   const user = await requireUser();
   const parsed = ProfileSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return fieldErrors(parsed.error);
@@ -92,6 +97,8 @@ const PasswordSchema = z
   });
 
 export async function changePassword(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const locked = demoLocked();
+  if (locked) return locked;
   const user = await requireUser();
   const parsed = PasswordSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return fieldErrors(parsed.error);
@@ -102,6 +109,9 @@ export async function changePassword(_prev: ActionState, formData: FormData): Pr
   }
   const passwordHash = await bcrypt.hash(parsed.data.newPassword, 10);
   await db.update(users).set({ passwordHash }).where(eq(users.id, user.id));
+  // Sign out every other device, then re-issue this browser a fresh session.
+  const v = await revokeSessions(user.id);
+  await createSession({ userId: user.id, role: user.role, v });
   await logActivity({
     userId: user.id,
     action: "user.password_changed",
@@ -120,6 +130,8 @@ const NewUserSchema = z.object({
 });
 
 export async function createUser(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const locked = demoLocked();
+  if (locked) return locked;
   const auth = await authorize("team:manage");
   if (!auth.ok) return auth.state;
   const parsed = NewUserSchema.safeParse(Object.fromEntries(formData));
@@ -142,8 +154,11 @@ export async function createUser(_prev: ActionState, formData: FormData): Promis
   return { ok: true, message: `${name} can now sign in with the temporary password.` };
 }
 
-async function adminCount() {
-  const [row] = await db.select({ n: count() }).from(users).where(eq(users.role, "admin"));
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Admin count read inside the same write transaction as the change it guards. */
+async function adminCount(tx: Tx) {
+  const [row] = await tx.select({ n: count() }).from(users).where(eq(users.role, "admin"));
   return row?.n ?? 0;
 }
 
@@ -157,6 +172,8 @@ async function findUser(id: number) {
 }
 
 export async function changeUserRole(userId: number, role: Role): Promise<ActionState> {
+  const locked = demoLocked();
+  if (locked) return locked;
   const auth = await authorize("team:manage");
   if (!auth.ok) return auth.state;
   if (!ROLES.includes(role)) return { ok: false, message: "Unknown role." };
@@ -164,10 +181,18 @@ export async function changeUserRole(userId: number, role: Role): Promise<Action
   const target = await findUser(userId);
   if (!target) return { ok: false, message: "That user no longer exists." };
   if (target.role === role) return { ok: true };
-  const blocked = checkRoleChange({ target, newRole: role, adminCount: await adminCount() });
+  // Check and write in one write transaction (BEGIN IMMEDIATE) so two admins cannot
+  // concurrently demote each other and leave the business with none.
+  const blocked = await db.transaction(async (tx) => {
+    const reason = checkRoleChange({ target, newRole: role, adminCount: await adminCount(tx) });
+    if (reason) return reason;
+    await tx
+      .update(users)
+      .set({ role, sessionVersion: sql`${users.sessionVersion} + 1` })
+      .where(eq(users.id, userId));
+    return null;
+  });
   if (blocked) return { ok: false, message: blocked };
-
-  await db.update(users).set({ role }).where(eq(users.id, userId));
   await logActivity({
     userId: auth.user.id,
     action: "user.role_changed",
@@ -180,16 +205,21 @@ export async function changeUserRole(userId: number, role: Role): Promise<Action
 }
 
 export async function removeUser(userId: number): Promise<ActionState> {
+  const locked = demoLocked();
+  if (locked) return locked;
   const auth = await authorize("team:manage");
   if (!auth.ok) return auth.state;
 
   const target = await findUser(userId);
   if (!target) return { ok: false, message: "That user no longer exists." };
-  const blocked = checkRemoveUser({ actorId: auth.user.id, target, adminCount: await adminCount() });
-  if (blocked) return { ok: false, message: blocked };
-
   // Foreign keys set created_by / assignee / activity user to null, so history is kept.
-  await db.delete(users).where(eq(users.id, userId));
+  const blocked = await db.transaction(async (tx) => {
+    const reason = checkRemoveUser({ actorId: auth.user.id, target, adminCount: await adminCount(tx) });
+    if (reason) return reason;
+    await tx.delete(users).where(eq(users.id, userId));
+    return null;
+  });
+  if (blocked) return { ok: false, message: blocked };
   await logActivity({
     userId: auth.user.id,
     action: "user.removed",

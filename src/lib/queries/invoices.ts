@@ -1,5 +1,6 @@
 import "server-only";
 import { and, asc, desc, eq, gt, gte, inArray, like, lt, or, sql, type SQL } from "drizzle-orm";
+import { contains } from "@/lib/sql-search";
 import { db } from "@/db";
 import {
   customers,
@@ -53,8 +54,7 @@ export async function listInvoices({
 }) {
   const conditions: (SQL | undefined)[] = [];
   if (q) {
-    const pattern = `%${q}%`;
-    conditions.push(or(like(invoices.number, pattern), like(customers.name, pattern), like(customers.company, pattern)));
+    conditions.push(or(contains(invoices.number, q), contains(customers.name, q), contains(customers.company, q)));
   }
   if (status) conditions.push(statusCondition(status, today()));
   const where = and(...conditions);

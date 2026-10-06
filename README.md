@@ -45,6 +45,7 @@ Key decisions:
 - **Server-side source of truth.** Invoice totals are recomputed on the server from line items. Client previews use the same pure `computeInvoiceTotals` function.
 - **Defense in depth for auth.** `proxy.ts` redirects signed-out users cheaply. Every page and Server Action re-checks the session against the database and enforces permissions with `authorize()`.
 - **Transactions** wrap multi-table writes (sending an invoice decrements stock and writes stock movements, voiding restores it, and payments update balances).
+- **Revocable stateless sessions.** JWTs carry a per-user `sessionVersion`. Logout, password change and role change bump it, so stolen cookies stop working. Login is rate-limited and timing-safe.
 - **Derived state isn't stored.** "Overdue" and "partial" are computed from due date and payments, so they can never drift.
 
 ## Getting started
@@ -77,6 +78,7 @@ The app runs anywhere Node runs. For serverless hosts (for example Vercel), use 
 DATABASE_URL=libsql://<your-db>.turso.io
 DATABASE_AUTH_TOKEN=<token>
 SESSION_SECRET=<32+ random chars>
+DEMO_MODE=true   # for a public demo: account, team and settings become read-only
 ```
 
 Run `npm run db:push && npm run db:seed` once with those variables set.

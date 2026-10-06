@@ -8,7 +8,10 @@ const body = Public_Sans({ variable: "--font-public-sans", subsets: ["latin"] })
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  // Absolute base for the Open Graph image (src/app/opengraph-image.jpg). Set SITE_URL when deployed.
+  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
   title: { default: "BizDesk", template: "%s · BizDesk" },
+  openGraph: { siteName: "BizDesk", type: "website" },
   description: "All-in-one business management: customers, inventory, invoicing, expenses, tasks and reports.",
 };
 

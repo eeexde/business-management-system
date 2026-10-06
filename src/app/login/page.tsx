@@ -17,7 +17,8 @@ const HERO_PHOTO = "/images/login-hero.jpg";
 const hasHeroPhoto = existsSync(path.join(process.cwd(), "public", HERO_PHOTO));
 
 const HERO_BACKGROUND = [
-  "linear-gradient(to top, rgb(10 16 21 / 0.92) 0%, rgb(10 16 21 / 0.55) 45%, rgb(10 16 21 / 0.25) 100%)",
+  // Shade the top (wordmark over bright windows) and bottom (headline) for legibility.
+  "linear-gradient(to bottom, rgb(10 16 21 / 0.75) 0%, rgb(10 16 21 / 0.2) 22%, rgb(10 16 21 / 0.35) 55%, rgb(10 16 21 / 0.93) 100%)",
   ...(hasHeroPhoto ? [`url(${HERO_PHOTO})`] : []),
   "repeating-linear-gradient(0deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 72px)",
   "repeating-linear-gradient(90deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 120px)",
@@ -30,7 +31,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <div className="grid min-h-screen lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
       <aside
-        className="relative hidden flex-col justify-between overflow-hidden bg-ink bg-cover bg-center p-10 text-ink-foreground lg:flex xl:p-14"
+        className="relative hidden flex-col justify-between overflow-hidden bg-ink bg-cover bg-[position:50%_72%] p-10 text-ink-foreground lg:flex xl:p-14"
         style={{ backgroundImage: HERO_BACKGROUND }}
       >
         <div className="flex items-center gap-2.5">

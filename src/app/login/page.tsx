@@ -1,5 +1,3 @@
-import { existsSync } from "node:fs";
-import path from "node:path";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { BrandMark } from "@/components/layout/brand-mark";
@@ -10,16 +8,16 @@ import { LoginForm } from "./login-form";
 export const metadata: Metadata = { title: "Sign in" };
 
 /*
- * Optional hero photo at public/images/login-hero.jpg. If it is missing the panel falls back to
- * an ink background with a faint shelving-label grid, so the page never shows a broken image.
+ * Hero photo (public/images/login-hero.jpg) layered over an ink background with a faint
+ * shelving-label grid, which is what shows while the photo loads or if it is ever removed.
+ * (No filesystem check: on serverless hosts public/ is served by the CDN, not the function.)
  */
 const HERO_PHOTO = "/images/login-hero.jpg";
-const hasHeroPhoto = existsSync(path.join(process.cwd(), "public", HERO_PHOTO));
 
 const HERO_BACKGROUND = [
   // Shade the top (wordmark over bright windows) and bottom (headline) for legibility.
   "linear-gradient(to bottom, rgb(10 16 21 / 0.75) 0%, rgb(10 16 21 / 0.2) 22%, rgb(10 16 21 / 0.35) 55%, rgb(10 16 21 / 0.93) 100%)",
-  ...(hasHeroPhoto ? [`url(${HERO_PHOTO})`] : []),
+  `url(${HERO_PHOTO})`,
   "repeating-linear-gradient(0deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 72px)",
   "repeating-linear-gradient(90deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 120px)",
 ].join(", ");

@@ -51,3 +51,9 @@ next-env.d.ts
 /qa.db*
 /review-scratch.db*
 /ci.db*
+
+# any SQLite database file
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
